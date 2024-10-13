@@ -1,0 +1,11 @@
+---
+- name: fix /boot/grub/grub.cfg permissions
+  file:
+    dest: /boot/grub/grub.cfg
+    mode: 0400
+    owner: root
+    group: root
+  when: ansible_virtualization_type != 'lxc'
+
+- include_tasks: change-permissions.yml
+  loop: "{{ security_permissions }}"

@@ -1,0 +1,11 @@
+---
+- name: ssh restart
+  service:
+    name: ssh
+    state: restarted
+
+- name: remount proc with hidepid
+  command: mount proc -o remount,hidepid=2  # noqa 303
+
+- name: nginx reload
+  command: nginx -s reload

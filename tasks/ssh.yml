@@ -1,0 +1,28 @@
+---
+- name: create list of sshd params from default list
+  set_fact:
+    finalized_sshd_params: "{{ finalized_sshd_params|default([]) + [ item ] }}"
+  when: item.key not in sshd_params|map(attribute='key')|list
+  loop: "{{ default_sshd_params }}"
+  no_log: yes
+
+- name: create finalized list of sshd params
+  set_fact:
+    finalized_sshd_params: "{{ finalized_sshd_params + sshd_params }}"
+  no_log: yes
+
+- name: deploy sshd configuration
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    state: present
+    regexp: '^#?{{ item.key }}'
+    line: '{{ item.key }} {{ item.value }}'
+    validate: '/usr/sbin/sshd -t -f %s'
+  loop: "{{ finalized_sshd_params }}"
+  notify: ssh restart
+
+- name: chattr +i authorized_keys
+  file:
+    path: /root/.ssh/authorized_keys
+    attributes: +i
+  when: ansible_virtualization_type != 'lxc'

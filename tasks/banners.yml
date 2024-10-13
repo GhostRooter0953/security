@@ -1,0 +1,7 @@
+---
+- name: hide ftp version
+  lineinfile:
+    dest: /etc/vsftpd.conf
+    state: present
+    insertbefore: BOF
+    line: 'ftpd_banner=Hello from common FTP service.'

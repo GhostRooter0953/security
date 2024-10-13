@@ -1,0 +1,35 @@
+---
+- name: create /etc/rc.local if doesn't exist
+  template:
+    src: rc.local.j2
+    dest: /etc/rc.local
+    mode: 0755
+    owner: root
+    group: root
+    force: no
+
+- name: enable hidepid
+  lineinfile:
+    dest: /etc/rc.local
+    state: present
+    insertbefore: 'exit 0'
+    line: 'mount proc -o remount,hidepid=2'
+  notify: remount proc with hidepid
+  when: ansible_virtualization_type != 'lxc' and not ansible_check_mode
+
+- name: enable hidepid in lxc
+  lineinfile:
+    dest: /etc/rc.local
+    state: present
+    insertbefore: 'exit 0'
+    line: 'mount /proc -o nodev,noexec,nosuid,hidepid=2'
+  when: ansible_virtualization_type == 'lxc' and not ansible_check_mode
+
+- name: fstab edit in lxc
+  mount:
+    path: /proc
+    src: proc
+    opts: remount,nodev,noexec,nosuid,hidepid=2
+    state: present
+    fstype: proc
+  when: ansible_virtualization_type == 'lxc'

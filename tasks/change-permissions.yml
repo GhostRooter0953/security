@@ -1,0 +1,14 @@
+---
+
+- name: check existence
+  stat:
+    path: "{{ item.dest }}"
+  register: stat_result
+
+- name: tightening permissions for "{{ item.dest }}"
+  file:
+    dest: "{{ item.dest }}"
+    mode: "{{ item.mode }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+  when: stat_result.stat.exists

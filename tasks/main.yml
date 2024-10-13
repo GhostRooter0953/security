@@ -1,0 +1,42 @@
+---
+- name: gather required facts
+  setup:
+    gather_subset: [virtual]
+  when: ansible_virtualization_type is not defined
+  # Убеждаемся, что команда выполнится, если тип виртуализации не определен
+
+- name: populate service facts
+  service_facts:
+  # Эта задача должна заполнить ansible_facts.services
+
+- name: Check if ansible_facts.services is defined
+  assert:
+    that: ansible_facts.services is defined
+    fail_msg: "The expected ansible_facts.services structure is not defined."
+  # Проверяем, что факты о сервисах были собраны и доступны прежде чем двигаться дальше
+
+- name: create list of services
+  set_fact:
+    service_list: "{{ ansible_facts.services.values() | map(attribute='name') | list }}"
+  # Создаем список сервисов, если ansible_facts.services доступен и определен
+
+- import_tasks: ssh.yml
+  when: '"sshd.service" in service_list'
+  # Импортируем ssh.yml, если sshd.service есть в списке сервисов
+
+- import_tasks: banners.yml
+  when: '"vsftpd.service" in service_list'
+  # Импортируем banners.yml, если vsftpd.service есть в списке сервисов
+
+- import_tasks: permissions.yml
+  # Импортируем permissions.yml
+
+- import_tasks: root-dir.yml
+  # Импортируем root-dir.yml
+
+- import_tasks: hidepid.yml
+  when: not security_disable_hidepid_changing
+  tags: [hidepid]
+  # Импортируем hidepid.yml, если изменение hidepid не отключено
+
+- import_tasks: apt.yml

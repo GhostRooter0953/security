@@ -1,0 +1,11 @@
+---
+- name: fix /root permitions
+  file:
+    dest: /root
+    mode: 0700
+
+- name: chattr /root/.ssh/authorized_keys
+  file:
+    dest: /root/.ssh/authorized_keys
+    attr: 'ie'
+  when: ansible_virtualization_type != 'lxc'
